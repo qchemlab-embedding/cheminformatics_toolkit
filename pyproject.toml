@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "mvp-python"
+version = "0.1.0"
+description = ""
+authors = ["gosia olejniczak <gosia.olejniczak@gmail.com>"]
+readme = "README.md"
+packages = [{include = "mvp_python"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
