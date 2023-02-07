@@ -9,6 +9,10 @@ packages = [{include = "mvp_python"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 
+[tool.pytest.ini_options]
+pythonpath = [
+  "mvp-python"
+]
 
 [build-system]
 requires = ["poetry-core"]
