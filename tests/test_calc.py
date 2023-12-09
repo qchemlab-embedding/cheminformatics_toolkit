@@ -4,7 +4,7 @@ import shutil
 import pytest
 from pathlib import Path
 
-import mvp_python as mvp
+import cheminformatics_toolkit as ctk
 from .helper import *
 
 
@@ -44,13 +44,13 @@ def run_test_generic(testdirs, debug=False, verbose=False):
         #
         # 4. run test
         #
-        args = mvp.cli.read_input(finp=test_file, verbose=verbose)
+        args = ctk.cli.read_input(finp=test_file, verbose=verbose)
 
-        setup = mvp.cli.input_data(args)
+        setup = ctk.cli.input_data(args)
         setup.parse_options()
         setup.print_options()
 
-        calc = mvp.calculate.work(setup.options)
+        calc = ctk.calculate.work(setup.options)
         calc.hello(verbose=True)
 
         #
