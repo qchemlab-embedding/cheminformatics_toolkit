@@ -66,6 +66,8 @@ def run_test_generic(testdirs, debug=False, verbose=False):
                     if f_ref.exists():
                         same.append(th.same_files(f_test, f_ref))
 
+        os.chdir(th.test_space)
+
         assert (all(x==True for x in same))
 
 
@@ -108,6 +110,16 @@ def test_test1():
 
     testdirs = [
         "test1",
+        ]
+    
+    run_test_generic(testdirs, debug=True)
+    #cleanup(testdirs)
+
+
+def test_inptest():
+
+    testdirs = [
+        "inptest",
         ]
     
     run_test_generic(testdirs, debug=True)
