@@ -46,6 +46,16 @@ class input_data:
                                         help msg
                                         ''')
 
+
+        optional_args.add_argument('--job_type',
+                                   dest='job_type',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
         optional_args.add_argument('--work_pathdir',
                                    dest='work_pathdir',
                                    action='store',
@@ -57,6 +67,16 @@ class input_data:
 
         optional_args.add_argument('--inp_xyz_fullpath',
                                    dest='inp_xyz_fullpath',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--out_filename',
+                                   dest='out_filename',
                                    action='store',
                                    metavar='writeme',
                                    required=False,
@@ -174,7 +194,6 @@ class input_data:
             self.parse_options()
 
         print("Input options:")
-        #pprint(self.options)
         print(self.options)
 
 

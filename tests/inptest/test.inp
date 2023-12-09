@@ -1,5 +1,6 @@
 --work_pathdir=../scratch/inptest
 --inp_xyz_fullpath=../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz
+--out_filename=result.txt
 --molname=cluster_1
 --molcharge=0
 --qm_runscript_template_fullpath=path

@@ -1,0 +1,16 @@
+arg1 : ../testdata/data.csv
+arg2 : ['f1.csv']
+job_type : inptest
+work_pathdir : ../scratch/inptest
+inp_xyz_fullpath : ../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz
+out_filename : result.txt
+molname : cluster_1
+molcharge : 0
+qm_runscript_template_fullpath : path
+qm_input_template_fullpath : path
+cluster_ntasks : 8
+cluster_timeh : 01:00:00
+cluster_part : cl
+hamiltonians : 'scalar ZORA'
+dftfuns : PBE
+basis_sets : TZ2P

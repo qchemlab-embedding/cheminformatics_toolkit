@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+from deepdiff import DeepDiff
+import filecmp
 
 class helper:
 
@@ -41,6 +43,18 @@ class helper:
             print('  - the path to scratch directory: ', self.scratch_dir)
     
  
+    def same_files(self, f1, f2):
+        p1 = Path(f1).resolve()
+        p2 = Path(f1).resolve()
+        if p1.exists() and p1.stat().st_size > 0 and p2.exists() and p2.stat().st_size > 0:
+            check = filecmp.cmp(f1,f2)
+            if check:
+                print("{} and {} are the same".format(f1,f2))
+            else:
+                print("{} and {} are different".format(f1,f2))
+            return check
+
+
 
 
 

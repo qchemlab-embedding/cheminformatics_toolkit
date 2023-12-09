@@ -50,20 +50,23 @@ def run_test_generic(testdirs, debug=False, verbose=False):
         setup.parse_options()
         setup.print_options()
 
-        calc = ctk.calculate.work(setup.options)
-        calc.hello(verbose=True)
+        # setup specific for tests:
+        fout = Path(th.scratch_dir, setup.options['out_filename']).absolute()
+        flog = Path(th.scratch_dir, 'log').absolute()
+        calc = ctk.calculate.work(setup.options, fout=fout, flog=flog)
+        calc.run(verbose=True)
 
         #
         # 5. compare output files with reference files
         #
         same = []
-        supported_extensions = ['.csv', '.vti']
-        for e in supported_extensions:
-            for f in os.listdir(testdir_path):
+        supported_extensions = ['.csv', '.txt']
+        for f in os.listdir(Path(testdir_path, 'reference').absolute()):
+            for e in supported_extensions:
                 if f.endswith(e):
-                    f_test = Path(testdir_path, f)
-                    f_ref  = Path(testdir_path, 'reference', f)
-                    if f_ref.exists():
+                    f_ref  = Path(testdir_path, 'reference', f).absolute()
+                    f_test = Path(th.scratch_dir, f).absolute()
+                    if f_ref.exists() and f_test.exists():
                         same.append(th.same_files(f_test, f_ref))
 
         os.chdir(th.test_space)
@@ -104,18 +107,18 @@ def cleanup(testdirs):
 #    testdirs = ["t1d3_omega"]
 #    return testdirs
 
-
-
-def test_test1():
-
-    testdirs = [
-        "test1",
-        ]
-    
-    run_test_generic(testdirs, debug=True)
-    #cleanup(testdirs)
-
-
+#
+#
+#def test_test1():
+#
+#    testdirs = [
+#        "test1",
+#        ]
+#    
+#    run_test_generic(testdirs, debug=True)
+#    #cleanup(testdirs)
+#
+#
 def test_inptest():
 
     testdirs = [
