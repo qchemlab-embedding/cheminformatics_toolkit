@@ -29,11 +29,11 @@ class input_data:
         required_args.add_argument('--arg1',
                                    dest='arg1',
                                    action='store',
-                                   metavar='writeme',
                                    required=True,
                                    help='''
                                         help msg
                                         ''')
+
 
         optional_args = parser.add_argument_group('optional arguments')
 
@@ -45,6 +45,124 @@ class input_data:
                                    help='''
                                         help msg
                                         ''')
+
+        optional_args.add_argument('--work_pathdir',
+                                   dest='work_pathdir',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+        optional_args.add_argument('--inp_xyz_fullpath',
+                                   dest='inp_xyz_fullpath',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--molname',
+                                   dest='molname',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--molcharge',
+                                   dest='molcharge',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--qm_runscript_template_fullpath',
+                                   dest='qm_runscript_template_fullpath',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--qm_input_template_fullpath',
+                                   dest='qm_input_template_fullpath',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+        optional_args.add_argument('--cluster_ntasks',
+                                   dest='cluster_ntasks',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--cluster_timeh',
+                                   dest='cluster_timeh',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--cluster_part',
+                                   dest='cluster_part',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--hamiltonians',
+                                   dest='hamiltonians',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--dftfuns',
+                                   dest='dftfuns',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+        optional_args.add_argument('--basis_sets',
+                                   dest='basis_sets',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
 
         args = parser.parse_args(self.args_list)
         self.options = vars(args)
