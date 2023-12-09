@@ -1,17 +1,17 @@
 [tool.poetry]
-name = "mvp-python"
+name = "cheminformatics_toolkit"
 version = "0.1.0"
 description = ""
 authors = ["gosia olejniczak <gosia.olejniczak@gmail.com>"]
 readme = "README.md"
-packages = [{include = "mvp_python"}]
+packages = [{include = "cheminformatics_toolkit"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 
 [tool.pytest.ini_options]
 pythonpath = [
-  "mvp-python"
+  "cheminformatics_toolkit"
 ]
 
 [build-system]
