@@ -1,7 +1,7 @@
---job_type=inptest
---work_pathdir=../scratch/inptest
+--job_type=from_crest_to_pyadf
+--work_pathdir=../scratch/crest_test1
 --inp_xyz_fullpath=../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz
---out_filename=result.txt
+--out_filename=output.txt
 --molname=cluster_1
 --molcharge=0
 --qm_runscript_template_fullpath=../../templates/pyadf/run.sh

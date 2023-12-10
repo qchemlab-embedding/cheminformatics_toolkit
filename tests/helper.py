@@ -32,7 +32,7 @@ class helper:
     def set_scratch_space(self, test_dir_name, verbose=True):
     
         if not self.scratch_space_is_set:
-            self.scratch_dir = Path(self.test_space, self.scratch_dirname, test_dir_name)
+            self.scratch_dir = Path(self.test_space, self.scratch_dirname, test_dir_name).resolve()
 
             os.makedirs(self.scratch_dir, exist_ok=True)
             self.scratch_space_is_set = True

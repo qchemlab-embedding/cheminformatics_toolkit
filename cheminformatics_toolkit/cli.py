@@ -10,14 +10,14 @@ class input_data:
     def __init__(self, args_list):
 
         self.args_list = args_list[1:]
+        self.options   = {}
+
         if args_list[0]:
             self.runinp_dir = Path(args_list[0]).resolve().parent 
         else:
             self.runinp_dir = os.getcwd()
 
-        self.options         = {}
-
-        self.data = global_data.dataset1
+        self.jobtypes = global_data.jobtypes
 
 
     def parse_options(self):
@@ -26,48 +26,31 @@ class input_data:
 
         required_args = parser.add_argument_group('required arguments')
 
-        required_args.add_argument('--arg1',
-                                   dest='arg1',
+        required_args.add_argument('--job_type',
+                                   dest='job_type',
                                    action='store',
+                                   metavar='writeme',
+                                   choices=self.jobtypes,
                                    required=True,
                                    help='''
                                         help msg
                                         ''')
 
-
-        optional_args = parser.add_argument_group('optional arguments')
-
-        optional_args.add_argument('--arg2',
-                                   dest='arg2',
-                                   action='append',
-                                   choices=self.data,
-                                   required=False,
-                                   help='''
-                                        help msg
-                                        ''')
-
-
-        optional_args.add_argument('--job_type',
-                                   dest='job_type',
-                                   action='store',
-                                   metavar='writeme',
-                                   required=False,
-                                   help='''
-                                        help msg
-                                        ''')
-
-        optional_args.add_argument('--work_pathdir',
+        required_args.add_argument('--work_pathdir',
                                    dest='work_pathdir',
                                    action='store',
                                    metavar='writeme',
-                                   required=False,
+                                   required=True,
                                    help='''
                                         help msg
                                         ''')
 
+        optional_args = parser.add_argument_group('optional arguments')
+
+
         optional_args.add_argument('--inp_xyz_fullpath',
                                    dest='inp_xyz_fullpath',
-                                   action='store',
+                                   action='append',
                                    metavar='writeme',
                                    required=False,
                                    help='''
@@ -156,7 +139,7 @@ class input_data:
 
         optional_args.add_argument('--hamiltonians',
                                    dest='hamiltonians',
-                                   action='store',
+                                   action='append',
                                    metavar='writeme',
                                    required=False,
                                    help='''
@@ -166,7 +149,7 @@ class input_data:
 
         optional_args.add_argument('--dftfuns',
                                    dest='dftfuns',
-                                   action='store',
+                                   action='append',
                                    metavar='writeme',
                                    required=False,
                                    help='''
@@ -176,7 +159,7 @@ class input_data:
 
         optional_args.add_argument('--basis_sets',
                                    dest='basis_sets',
-                                   action='store',
+                                   action='append',
                                    metavar='writeme',
                                    required=False,
                                    help='''
@@ -195,6 +178,33 @@ class input_data:
 
         print("Input options:")
         print(self.options)
+
+
+    def process_options(self):
+
+        # resolve paths:
+
+        runinp_dir = Path(self.runinp_dir).resolve().absolute()   # where the ctk job input is 
+        work_dir   = Path(runinp_dir, Path(self.options['work_pathdir'])).resolve().absolute() # workdir (e.g., scratch); can be relative to runinp_dir
+
+        qm_tmpl_inp = Path(runinp_dir, Path(self.options['qm_input_template_fullpath'])).resolve().absolute()
+        qm_tmpl_run = Path(runinp_dir, Path(self.options['qm_runscript_template_fullpath'])).resolve().absolute()
+
+        outfile = Path(work_dir, Path(self.options['out_filename']).resolve()).absolute()
+        logfile = Path(work_dir, 'log').absolute()
+
+        inpxyzf = [Path(runinp_dir, Path(x)).resolve().absolute() for x in self.options['inp_xyz_fullpath']]
+
+        self.options['runinp_dir']   = runinp_dir
+        self.options['work_pathdir'] = work_dir
+
+        self.options['outfile'] = outfile
+        self.options['logfile'] = logfile
+
+        self.options['inpxyzf'] = inpxyzf
+
+        self.options['qm_input_template_fullpath'] = qm_tmpl_inp
+        self.options['qm_runscript_template_fullpath'] = qm_tmpl_run
 
 
 def read_input(finp=None, verbose=False):
@@ -234,7 +244,7 @@ if __name__ == '__main__':
     args = read_input()
     data = input_data(args)
     data.parse_options()
-    data.print_options()
+    data.process_options()
 
 
 

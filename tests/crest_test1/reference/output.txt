@@ -1,7 +1,7 @@
-job_type : inptest
-work_pathdir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest
+job_type : from_crest_to_pyadf
+work_pathdir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/crest_test1
 inp_xyz_fullpath : ['../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz']
-out_filename : result.txt
+out_filename : output.txt
 molname : cluster_1
 molcharge : 0
 qm_runscript_template_fullpath : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/templates/pyadf/run.sh
@@ -12,7 +12,7 @@ cluster_part : plgrid-now
 hamiltonians : ['ZORA']
 dftfuns : ['PBE']
 basis_sets : ['TZ2P']
-runinp_dir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/inptest
-outfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest/result.txt
-logfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest/log
+runinp_dir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/crest_test1
+outfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/crest_test1/output.txt
+logfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/crest_test1/log
 inpxyzf : [PosixPath('/net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/testdata/crest_data/cluster_1/conformers/crest_conformers.xyz')]

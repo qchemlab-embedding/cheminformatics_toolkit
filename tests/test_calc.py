@@ -39,7 +39,7 @@ def run_test_generic(testdirs, debug=False, verbose=False):
         #
         for tf in os.listdir(testdir_path):
             if tf.endswith('.inp'):
-                test_file = Path(testdir_path, tf)
+                test_file = Path(testdir_path, tf).absolute()
 
         #
         # 4. run test
@@ -48,12 +48,10 @@ def run_test_generic(testdirs, debug=False, verbose=False):
 
         setup = ctk.cli.input_data(args)
         setup.parse_options()
+        setup.process_options()
         setup.print_options()
 
-        # setup specific for tests:
-        fout = Path(th.scratch_dir, setup.options['out_filename']).absolute()
-        flog = Path(th.scratch_dir, 'log').absolute()
-        calc = ctk.calculate.work(setup.options, fout=fout, flog=flog)
+        calc = ctk.calculate.work(setup.options)
         calc.run(verbose=True)
 
         #
@@ -103,10 +101,6 @@ def cleanup(testdirs):
                         os.remove(f_test)
 
 
-#def list_viable_tests(test_paths):
-#    testdirs = ["t1d3_omega"]
-#    return testdirs
-
 #
 #
 #def test_test1():
@@ -118,11 +112,21 @@ def cleanup(testdirs):
 #    run_test_generic(testdirs, debug=True)
 #    #cleanup(testdirs)
 #
-#
+
 def test_inptest():
 
     testdirs = [
         "inptest",
+        ]
+    
+    run_test_generic(testdirs, debug=True)
+    #cleanup(testdirs)
+
+
+def test_crest():
+
+    testdirs = [
+        "crest_test1",
         ]
     
     run_test_generic(testdirs, debug=True)
