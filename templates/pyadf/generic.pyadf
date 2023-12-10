@@ -1,0 +1,293 @@
+import shutil
+import time
+
+##########################################################
+# functions grepping key ADF results
+##########################################################
+
+def calculate_nmr_shieldings(molecule, results, active_atoms=None, active_labels=None, active_coords=None, label=None, ghost_coords=None, print_active=False, print_ghost=False):
+
+    print( " # " )
+    print( " # Output from calculate_nmr_shieldings:" )
+    if label:
+        print( " # ", label )
+    print( " # " )
+
+    if ghost_coords is None:
+        nmr_results = adfnmrjob(results, active_atoms, out='all', use='FXC', calc='all', u1k='best').run()
+    else:
+        # remember to add ghosts as point charges in SCF step
+        nmr_results = adfnmrjob(results, active_atoms, ghosts=ghost_coords, out='all', use='FXC', calc='all', u1k='best').run()
+
+    if active_atoms is not None:
+        for a in range(len(active_atoms)):
+            if print_active:
+                ax = str(active_coords[a][0])
+                ay = str(active_coords[a][1])
+                az = str(active_coords[a][2])
+                print( "NMR results for an active atom: ", active_atoms[a], " at coords: "+ax+", "+ay+", "+az+"\n" )
+                tot,para,dia = nmr_results.get_shielding(nuc=active_atoms[a])
+                print( "@@ Shielding_iso_para  "+active_labels[a]+"("+label+") :", para )
+                print( "@@ Shielding_iso_dia   "+active_labels[a]+"("+label+") :", dia )
+                print( "@@ Shielding_iso_total "+active_labels[a]+"("+label+") :", tot )
+                print( "\n" )
+    if ghost_coords is not None:
+        if print_ghost:
+            for g in range(len(ghost_coords)):
+                cx = str(ghost_coords[g][0])
+                cy = str(ghost_coords[g][1])
+                cz = str(ghost_coords[g][2])
+                print( "NMR results at ghost coords: "+cx+", "+cy+", "+cz+"\n" )
+                tot,para,dia = nmr_results.get_shielding(ghost=g+1)
+                print( "## Shielding_iso_para  : ("+label+") :", para )
+                print( "## Shielding_iso_dia   : ("+label+") :", dia )
+                print( "## Shielding_iso_total : ("+label+") :", tot )
+                print( "\n" )
+
+    print( " # -- end of calculate_nmr_shieldings -- #" )
+
+
+
+##########################################################
+# if you need to store large data, 
+# please use a directory in $PLG_GROUPS_STORAGE/plggqcembed/
+##########################################################
+
+# adapt this to your needs, 
+# but do not change the "/net/pr2/projects/plgrid/plggqcembed/" core:
+data_dir='/net/pr2/projects/plgrid/plggqcembed/gosia-storage/pyadf/tests/pyadf_scripts/test_usage_response_properties/nmr_shieldings'
+
+
+##########################################################
+# general settings for pyadf on Ares;
+# you do not need to change this
+##########################################################
+
+from pyadf import *
+if 'pyadfenv' not in globals():
+    from pyadf.Initialization import *
+
+DefaultJobRunner.instance = None
+job_runner_conf = JobRunnerConfiguration(conffile='/net/pr2/projects/plgrid/plggqcembed/devel/tools/pyadf-jobrunner.conf',
+                                         jobbasedir=pyadfenv.outdir)
+DefaultJobRunner(conf=job_runner_conf)
+
+
+
+##########################################################
+# 1. set up molecular data
+##########################################################
+
+# these settings you need to adapt for the job
+# molecular data:
+geometries_dir = os.path.join(pyadfenv.outdir, 'coordinates')
+file_mol  = os.path.join(geometries_dir, 'fminus.xyz')
+file_env1 = os.path.join(geometries_dir, 'h2o.xyz')
+m_mol  = molecule(file_mol)
+m_env1 = molecule(file_env1)
+m_tot = m_mol + m_env1
+
+# if a system is charged, then remember to set it up 
+charge_mol=-1
+m_mol.set_charge(charge_mol)
+m_tot.set_charge(charge_mol)
+
+# ask the program not to identify molecular symmetry
+m_mol.set_symmetry('NOSYM')
+m_env1.set_symmetry('NOSYM')
+m_tot.set_symmetry('NOSYM')
+
+print(m_mol.print_coordinates())
+
+##########################################################
+# 2. general settings for ADF job
+##########################################################
+
+settings = adfsettings()
+
+# these settings you need to adapt for the job - search in ADF manual for possible options:
+settings.set_ZORA(ZORA=True, SpinOrbit=False)  # choose the Hamiltonian
+settings.set_unrestricted(False)               # ... option related to the Hamiltonian
+settings.set_noncollinear(False)               # ... option related to the Hamiltonian
+settings.set_functional('PBE')                 # choose DFT functional
+basis_set = "DZP"                              # choose the basis set
+
+# these settings can be left as they are:
+# search in pyadf code what they mean 
+settings.ncycles=1000                     
+settings.set_integration(accint=8.0, acclist=[8.0, 8.0])
+settings.set_dependency(True)
+settings.set_exactdensity(True)
+settings.set_save_tapes([21,10,41])
+settings.set_occupations(['KEEPORBITALS '+str(settings.ncycles)])
+gen_sym_opts = ['NOSYM', 'NOSYMFIT', 'NUCLEARMODEL gaussian']
+
+
+##########################################################
+# 3. run SCF
+# - get optimized wavefunction
+# - save numerical grid
+# Note: you (almost) always need to run this
+##########################################################
+
+# if you verified all settings from points 1. and 2., then you don't need to change this
+# SCF of a full system
+r_tot  = adfsinglepointjob(m_tot,  basis_set, settings=settings, options=gen_sym_opts).run()
+# SCF of isolated subsystems
+r_mol  = adfsinglepointjob(m_mol,  basis_set, settings=settings, options=gen_sym_opts).run()
+r_env1 = adfsinglepointjob(m_env1, basis_set, settings=settings, options=gen_sym_opts).run()
+
+
+
+##########################################################
+# 4. get numerical grid for a full system
+##########################################################
+
+# these settings you need to adapt for the job - storage and grid settings:
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+
+agrid = adfgrid(r_tot)
+
+
+##########################################################
+# 5. Run property calculation
+##########################################################
+
+# NMR centers setup
+# here, you can select nuclei for which the NMR shielding is calculated
+# * it can reduce the computational time, otherwise the code does calculations on all nuclei in a system
+# * but then - be wary of the numbering order of atoms:
+#   * it should be given in "input order"
+#   * atom numbering starts from 1 (search for "Internal NMR numbering of atoms:" in ADF output)
+
+# here - we select F-
+active_nmr_atoms_index = [1]
+active_nmr_atoms_label = ["F"]
+active_nmr_atoms_coords= []
+for i in active_nmr_atoms_index:
+    active_nmr_atoms_coords.append(m_mol.get_coordinates()[i-1])
+
+# and H engaged in a hydrogen bonding
+env_nmr_atoms_index = [3]
+env_nmr_atoms_label = ["Hb"]
+env_nmr_atoms_coords= []
+for i in env_nmr_atoms_index:
+    env_nmr_atoms_coords.append(m_env1.get_coordinates()[i-1])
+
+super_nmr_atoms_index = [1,4]
+super_nmr_atoms_label = ["F", "Hb"]
+super_nmr_atoms_coords= []
+for i in super_nmr_atoms_index:
+    super_nmr_atoms_coords.append(m_tot.get_coordinates()[i-1])
+
+# calculate and print:
+# * NMR of F- in an isolated subsystem (no FDE)
+calculate_nmr_shieldings(m_mol, r_mol, active_atoms=active_nmr_atoms_index, active_labels=active_nmr_atoms_label, active_coords=active_nmr_atoms_coords, label="isolated subsystem (mol)", print_active=True)
+# * NMR of H in an isolated subsystem (no FDE)
+calculate_nmr_shieldings(m_env1, r_env1, active_atoms=env_nmr_atoms_index, active_labels=env_nmr_atoms_label, active_coords=env_nmr_atoms_coords, label="isolated subsystem (env1)", print_active=True)
+
+# * contributions to NMR shielding of F- from "env1" (NICS-type contributions to NMR shieldings)
+ghost_coords = active_nmr_atoms_coords   # NMR of atoms of environment in a position of a selected nucleus
+#   remember to add ghosts as point charges in SCF step; redo the calculations if this was missing:
+r_env1 = adfsinglepointjob(m_env1, basis_set, settings=settings, options=gen_sym_opts, pointcharges=ghost_coords).run()
+calculate_nmr_shieldings(m_env1, r_env1, active_atoms=[], active_labels=[], active_coords=[], ghost_coords=ghost_coords, label="NICS-like contribution from env1 to isolated mol", print_ghost=True)
+# * contributions to NMR shielding of H from "mol" (NICS-type contributions to NMR shieldings)
+ghost_coords = env_nmr_atoms_coords   # NMR of atoms of "mol" in a position of a selected nucleus from an environment
+#   remember to add ghosts as point charges in SCF step; redo the calculations if this was missing:
+r_mol = adfsinglepointjob(m_mol, basis_set, settings=settings, options=gen_sym_opts, pointcharges=ghost_coords).run()
+calculate_nmr_shieldings(m_mol, r_mol, active_atoms=[], active_labels=[], active_coords=[], ghost_coords=ghost_coords, label="NICS-like contribution from mol to isolated env1", print_ghost=True)
+
+# * NMR on selected nuclei - in a full system ("supermolecular" reference)
+calculate_nmr_shieldings(m_tot, r_tot, active_atoms=super_nmr_atoms_index,  active_labels=super_nmr_atoms_label, active_coords=super_nmr_atoms_coords, label="supermolecule", print_active=True)
+
+
+##########################################################
+# 6. Run FDE and calculate properties on top 
+##########################################################
+
+# these settings you need to adapt for the job - ....
+fde_nadd_kin = 'PW91K'    # choose the potential for the non-additive kinetic part of interaction energy
+max_fnt_cycles = 5        # choose the maximum number of freeze-and-thaw cycles
+save_potentials_densities = False
+
+fde_exc_opts = ['QTENS', 'ALLOW POSHOMO']
+gen_fde_opts = gen_sym_opts + fde_exc_opts
+
+fde_act_opts = {'FULLGRID':'', 'TNAD':fde_nadd_kin, 'ENERGY':''}
+fde_frz_opts = {}
+
+fnt_act_opts = {'FULLGRID':'', 'TNAD':fde_nadd_kin, 'ENERGY':'', 'RELAXCYCLES': max_fnt_cycles }
+fnt_frz_opts = {"RELAX":""}
+
+basis_act = basis_set
+basis_frz = basis_set
+
+
+# A. run "pure" FDE calculations (no freeze-and-thaw cycles)
+#    ... FDE calculations on an "active" subsystem
+frags = [ fragment(None,  [m_mol]),
+          fragment(r_env1, [m_env1], isfrozen=True, fdeoptions=fde_frz_opts) ]
+
+result_fde_mol = adffragmentsjob(frags, basis_set, settings=settings, fde=fde_act_opts,
+                                 options=gen_fde_opts).run()
+#    ... and property calculation on that subsystem
+# * NMR of F- in an active subsystem (FDE)
+calculate_nmr_shieldings(m_mol, result_fde_mol, active_atoms=active_nmr_atoms_index, active_labels=active_nmr_atoms_label, active_coords=active_nmr_atoms_coords, label="FDE; mol=active, env1=frozen", print_active=True)
+# * contributions to NMR shielding of F- from "env1" (NICS-type contributions to NMR shieldings)
+ghost_coords = active_nmr_atoms_coords   # NMR of atoms of environment in a position of a selected nucleus
+#   remember to add ghosts as point charges in SCF step; redo the calculations if this was missing (in this script, it was done on r_env1)
+calculate_nmr_shieldings(m_env1, result_fde_mol, active_atoms=[], active_labels=[], active_coords=[], ghost_coords=ghost_coords, label="FDE; NICS-like contribution from env1 (frozen) to mol (active)", print_ghost=True)
+
+
+#    ... now exchange subsystems and do FDE calculations on an "environment"
+frags = [ fragment(None,  [m_env1]),
+          fragment(r_mol, [m_mol], isfrozen=True, fdeoptions=fde_frz_opts) ]
+
+result_fde_env1 = adffragmentsjob(frags, basis_set, settings=settings, fde=fde_act_opts,
+                                  options=gen_fde_opts).run()
+#    ... and property calculation on that subsystem
+# * NMR of H in a subsystem that now is "active" (FDE)
+calculate_nmr_shieldings(m_env1, result_fde_env1, active_atoms=env_nmr_atoms_index, active_labels=env_nmr_atoms_label, active_coords=env_nmr_atoms_coords, label="FDE; env1=active, mol=frozen", print_active=True)
+# * contributions to NMR shielding of H from "mol" (NICS-type contributions to NMR shieldings)
+ghost_coords = env_nmr_atoms_coords   # NMR of atoms of "mol" in a position of a selected nucleus from an environment
+#   remember to add ghosts as point charges in SCF step; redo the calculations if this was missing (in this script, it was done on r_mol)
+calculate_nmr_shieldings(m_mol, result_fde_env1, active_atoms=[], active_labels=[], active_coords=[], ghost_coords=ghost_coords, label="FDE; NICS-like contribution from mol (frozen) to env1 (active)", print_ghost=True)
+
+
+
+# B. run FDE calculations with freeze-and-thaw cycles
+#    ... FDE calculations on an "active" subsystem
+frags = [ fragment(None,   [m_mol]),
+          fragment(r_env1, [m_env1], isfrozen=True, fdeoptions=fnt_frz_opts) ]
+
+result_fnt_mol = adffragmentsjob(frags, basis_set, settings=settings, fde=fnt_act_opts,
+                                 options=gen_fde_opts).run()
+
+#    ... and property calculation on that subsystem
+# * NMR of F- in an active subsystem (FnT)
+calculate_nmr_shieldings(m_mol, result_fnt_mol, active_atoms=active_nmr_atoms_index, active_labels=active_nmr_atoms_label, active_coords=active_nmr_atoms_coords, label="FnT; mol=active, env1=frozen", print_active=True)
+# * contributions to NMR shielding of F- from "env1" (NICS-type contributions to NMR shieldings)
+ghost_coords = active_nmr_atoms_coords   # NMR of atoms of environment in a position of a selected nucleus
+#   remember to add ghosts as point charges in SCF step; redo the calculations if this was missing (in this script, it was done on r_env1)
+calculate_nmr_shieldings(m_env1, result_fnt_mol, active_atoms=[], active_labels=[], active_coords=[], ghost_coords=ghost_coords, label="FnT; NICS-like contribution from env1 (frozen) to mol (active)", print_ghost=True)
+
+
+#    ... now exchange subsystems and do FDE calculations on an "environment"
+
+frags = [ fragment(None,  [m_env1]),
+          fragment(r_mol, [m_mol], isfrozen=True, fdeoptions=fnt_frz_opts) ]
+
+result_fnt_env1 = adffragmentsjob(frags, basis_set, settings=settings, fde=fnt_act_opts,
+                                  options=gen_fde_opts).run()
+
+#    ... and property calculation on that subsystem
+# * NMR of H in a subsystem that now is "active" (FnT)
+calculate_nmr_shieldings(m_env1, result_fnt_env1, active_atoms=env_nmr_atoms_index, active_labels=env_nmr_atoms_label, active_coords=env_nmr_atoms_coords, label="FnT; env1=active, mol=frozen", print_active=True)
+# * contributions to NMR shielding of H from "mol" (NICS-type contributions to NMR shieldings)
+ghost_coords = env_nmr_atoms_coords   # NMR of atoms of "mol" in a position of a selected nucleus from an environment
+#   remember to add ghosts as point charges in SCF step; redo the calculations if this was missing (in this script, it was done on r_mol)
+calculate_nmr_shieldings(m_mol, result_fnt_env1, active_atoms=[], active_labels=[], active_coords=[], ghost_coords=ghost_coords, label="FnT; NICS-like contribution from mol (frozen) to env1 (active)", print_ghost=True)
+
+
+
