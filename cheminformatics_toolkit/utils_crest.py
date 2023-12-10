@@ -52,10 +52,8 @@ class crest_analysis():
     def parse_structures(self):
         fileout_dir= Path(self.workdir, 'tmpdir').absolute()
         fileout_dir.mkdir(parents=True, exist_ok=True)
-        print('fileout = ', fileout_dir)
         output_xyz_files = []
         for fxyz in self.inpxyzf:
-            print('fxyz = ', fxyz)
             data = self.get_single_struc(str(Path(fxyz).resolve()))
             for k, v in data.items():
                 mol_name = self.inpmoln+'_struc_'+str(k)
@@ -71,11 +69,6 @@ class crest_analysis():
         if xyzfiles is None:
             xyzfiles = self.parse_structures()
         self.setup_qm_dirstructure(xyzfiles)
-        #for inps in inpfiles:
-        #    calcdir = inps.resolve().parents[1]
-        #    print(calcdir)
-        #    for tpl in tpl_files:
-        #        shutil.copy(Path(self.qm_templatedirname, tpl).resolve(), calcdir)
 
 
     def setup_qm_dirstructure(self, xyzfiles):
@@ -89,9 +82,6 @@ class crest_analysis():
                     for b in bs:
                         if 'pyadf' in self.options['job_type']:
                             qm_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b).absolute()
-                            #print('qm_dir = ', qm_dir)
-                            #print('inp_tmpl = ', self.qm_tmpl_inp)
-                            #print('run_tmpl = ', self.qm_tmpl_run)
                             Path(qm_dir).mkdir(parents=True, exist_ok=True)
                             shutil.copy(self.qm_tmpl_inp, qm_dir)
                             shutil.copy(self.qm_tmpl_run, qm_dir)
