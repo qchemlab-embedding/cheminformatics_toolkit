@@ -65,10 +65,15 @@ class crest_analysis():
         return output_xyz_files
 
 
+    def cleanup(self, f):
+        print('warning: removing dir: ', f)
+        shutil.rmtree(f) 
+
     def prep_for_pyadf(self, xyzfiles=None):
         if xyzfiles is None:
             xyzfiles = self.parse_structures()
         self.setup_qm_dirstructure(xyzfiles)
+        self.cleanup(Path(self.workdir, 'tmpdir').absolute())
 
 
     def setup_qm_dirstructure(self, xyzfiles):
