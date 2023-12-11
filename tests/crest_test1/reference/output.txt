@@ -1,5 +1,6 @@
 job_type : from_crest_to_pyadf
 work_pathdir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/crest_test1
+username : myname
 inp_xyz_fullpath : ['../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz']
 out_filename : output.txt
 molname : cluster_1
@@ -9,7 +10,7 @@ qm_input_template_fullpath : /net/pr2/projects/plgrid/plggqcembed/devel/cheminfo
 cluster_ntasks : 8
 cluster_timeh : 01:00:00
 cluster_part : plgrid-now
-hamiltonians : ['ZORA']
+hamiltonians : ['spinorbit ZORA']
 dftfuns : ['PBE']
 basis_sets : ['TZ2P']
 runinp_dir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/crest_test1

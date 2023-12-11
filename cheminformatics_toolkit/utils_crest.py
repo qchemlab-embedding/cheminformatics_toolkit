@@ -83,15 +83,90 @@ class crest_analysis():
         for mf in xyzfiles:
             molname = mf.stem
             for h in hs:
+                h = h.replace(" ", "")
                 for d in ds:
+                    d = d.replace(" ", "")
                     for b in bs:
+                        b = b.replace(" ", "")
                         if 'pyadf' in self.options['job_type']:
+                            subdirname=self.options['username']+'-space/qm_calcs/pyadf/' + 'molname/' + h + '/' + d + '/' + b
                             qm_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b).absolute()
                             coor_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b, 'coordinates').absolute()
                             Path(qm_dir).mkdir(parents=True, exist_ok=True)
                             Path(coor_dir).mkdir(parents=True, exist_ok=True)
+                            shutil.copy(mf, coor_dir)
                             shutil.copy(self.qm_tmpl_inp, qm_dir)
                             shutil.copy(self.qm_tmpl_run, qm_dir)
-                            shutil.copy(mf, coor_dir)
+                            # now, string replacement:
+                            final_runf = Path(qm_dir, self.qm_tmpl_run.name).absolute()
+                            final_inpf = Path(qm_dir, self.qm_tmpl_inp.name).absolute()
+                            with open(self.qm_tmpl_run, "r") as f:
+                                lines = f.readlines()
+                                with open(final_runf, "w") as g:
+                                    self.modify_lines(g, lines, \
+                                                      data_dir_in_scratch=subdirname, data_dir_in_storage=subdirname, \
+                                                      project_name=self.qm_tmpl_inp.stem, \
+                                                      molfilename=mf.name, envfilename=mf.name, molcharge=0, \
+                                                      cluster_ntasks=self.options['cluster_ntasks'], \
+                                                      cluster_timeh=self.options['cluster_timeh'], \
+                                                      cluster_part=self.options['cluster_part'], \
+                                                      basis=b, hamiltonian=h, dftfun=d)
+                            with open(self.qm_tmpl_inp, "r") as f:
+                                lines = f.readlines()
+                                with open(final_inpf, "w") as g:
+                                    self.modify_lines(g, lines, \
+                                                      data_dir_in_scratch=subdirname, data_dir_in_storage=subdirname, \
+                                                      project_name=self.qm_tmpl_inp.stem, \
+                                                      molfilename=mf.name, envfilename=mf.name, molcharge=0, \
+                                                      cluster_ntasks=self.options['cluster_ntasks'], \
+                                                      cluster_timeh=self.options['cluster_timeh'], \
+                                                      cluster_part=self.options['cluster_part'], \
+                                                      basis=b, hamiltonian=h, dftfun=d)
 
 
+
+
+    def modify_lines(self, g, lines, \
+                     data_dir_in_scratch, data_dir_in_storage, project_name, \
+                     molfilename, envfilename, molcharge, \
+                     cluster_ntasks=None, cluster_timeh=None, cluster_part=None, \
+                     basis=None, hamiltonian=None, dftfun=None):
+    
+        patterns={}
+    
+        patterns["cluster_ntasks"] = str(cluster_ntasks)
+        patterns["cluster_timeh"] = str(cluster_timeh)
+        patterns["cluster_part"] = cluster_part
+
+        patterns["data_dir_in_scratch"] = data_dir_in_scratch
+        patterns["data_dir_in_storage"] = data_dir_in_storage
+        patterns["project_name"] = project_name
+    
+        patterns["molfilename"] = molfilename
+        patterns["envfilename"] = envfilename
+        patterns["molcharge"] = molcharge
+    
+        patterns["choice_of_basis"] = basis
+        patterns["choice_of_dftfun"] = dftfun
+
+        if 'ZORA' in hamiltonian:
+            if 'spinorbit' in hamiltonian:
+                patterns["choice_of_hamiltonian"] = 'ZORA=True, SpinOrbit=True'
+                patterns["choice_of_unrestricted"] = 'remove'
+                patterns["choice_of_noncollinear"] = 'True'
+            else:
+                patterns["choice_of_hamiltonian"] = 'ZORA=True, SpinOrbit=False'
+                patterns["choice_of_unrestricted"] = 'False'
+                patterns["choice_of_noncollinear"] = 'remove'
+        else:
+            patterns["choice_of_hamiltonian"] = 'remove'
+            patterns["choice_of_unrestricted"] = 'remove'
+
+    
+        for l in lines:
+            for k, v in patterns.items():
+                if v:
+                    l = l.replace(k, v)
+            if 'remove' not in l:
+                g.write(l)
+    

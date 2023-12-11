@@ -48,6 +48,17 @@ class input_data:
         optional_args = parser.add_argument_group('optional arguments')
 
 
+        optional_args.add_argument('--username',
+                                   dest='username',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
+ 
         optional_args.add_argument('--inp_xyz_fullpath',
                                    dest='inp_xyz_fullpath',
                                    action='append',
