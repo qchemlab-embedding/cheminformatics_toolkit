@@ -1,0 +1,235 @@
+import numpy
+
+#
+# this is a generic template script for pyadf
+#
+# it contains directives for many "types" of jobs, including:
+# - single point energy calculations and wave function optimization
+# - geometry optimization
+# - evaluation of vibrational frequencies
+# - export of electron density on a numerical grid
+# - calculation of electric dipole polarizability
+# - calculation of NMR shielding tensor
+# - FDE calculation:
+#   - wave function optimization with and without freeze-and-thaw cycles
+#   - export of embedding potential on a numerical grid
+#
+# that should help to create scripts for actual calculations:
+#   - pick the parts that you need and ignore the rest,
+#   - adapt to your needs (!!!) by looking at:
+#     - ADF and DIRAC manuals
+#     - pyadf code
+#   - contribute to this script (git repo: git@github.com:qchemlab-embedding/scripts.git)
+#
+# last rev. Gosia Olejniczak, 18/10/2023
+# tested with pyadf, git #f0d7a96e90db32e65994ea07079665bcf542824a
+#
+
+
+
+##########################################################
+# if you need to store large data, 
+# please use a directory in $PLG_GROUPS_STORAGE/plggqcembed/
+##########################################################
+
+# adapt this to your needs, 
+# but do not change the "/net/pr2/projects/plgrid/plggqcembed/" core:
+data_dir=/net/pr2/projects/plgrid/plggqcembed/myname-space/qm_calcs/pyadf/molname/spinorbitZORA/PBE/TZ2P
+
+
+##########################################################
+# general settings for pyadf on Ares;
+# you do not need to change this
+##########################################################
+
+from pyadf import *
+if 'pyadfenv' not in globals():
+    from pyadf.Initialization import *
+
+DefaultJobRunner.instance = None
+job_runner_conf = JobRunnerConfiguration(conffile='/net/pr2/projects/plgrid/plggqcembed/devel/tools/pyadf-jobrunner.conf',
+                                         jobbasedir=pyadfenv.outdir)
+DefaultJobRunner(conf=job_runner_conf)
+
+
+
+##########################################################
+# 1. set up molecular data
+##########################################################
+
+# these settings you need to adapt for the job
+# molecular data:
+geometries_dir = os.path.join(pyadfenv.outdir, 'coordinates')
+file_mol  = os.path.join(geometries_dir, 'cluster_1_struc_2.xyz')
+file_env1 = os.path.join(geometries_dir, 'cluster_1_struc_2.xyz')
+m_mol  = molecule(file_mol)
+m_env1 = molecule(file_env1)
+m_tot = m_mol + m_env1
+
+# if a system is charged, then remember to set it up 
+charge_mol=molcharge
+m_mol.set_charge(charge_mol)
+m_tot.set_charge(charge_mol)
+
+# ask the program not to identify molecular symmetry
+m_mol.set_symmetry('NOSYM')
+m_env1.set_symmetry('NOSYM')
+m_tot.set_symmetry('NOSYM')
+
+print(m_mol.print_coordinates())
+
+
+##########################################################
+# 2. general settings for ADF job
+##########################################################
+
+settings = adfsettings()
+
+# these settings you need to adapt for the job - search in ADF manual for possible options:
+settings.set_ZORA(ZORA=True, SpinOrbit=True)       # choose the Hamiltonian
+settings.set_noncollinear(True)               # ... option related to the Hamiltonian
+basis_set = TZ2P                    # choose the basis set
+settings.set_functional(PBE)      # choose DFT functional
+# if you need dispersion corrections, try:
+#settings.set_dispersion('Grimme3')            # this will use "PBE-D3" or:
+#settings.set_dispersion('Grimme3 BJDAMP')     # this will use "PBE-D3BJ" or:
+#settings.set_dispersion('')                   # this will use "PBE-D"
+# if you DO NOT want dispersion corrections, then
+#settings.set_dispersion('None')
+
+
+# these settings can be left as they are:
+# search in pyadf code what they mean 
+settings.ncycles=1000                     
+settings.set_integration(accint=8.0, acclist=[8.0, 8.0])
+settings.set_dependency(True)
+settings.set_exactdensity(True)
+settings.set_save_tapes([21,10,41])
+settings.set_occupations(['KEEPORBITALS '+str(settings.ncycles)])
+gen_sym_opts = ['NOSYM', 'NOSYMFIT', 'NUCLEARMODEL gaussian']
+
+
+##########################################################
+# 3. run SCF
+# - get optimized wavefunction
+# - save numerical grid
+# Note: you (almost) always need to run this
+##########################################################
+
+# if you verified all settings from points 1. and 2., then you don't need to change this
+r_tot  = adfsinglepointjob(m_tot,  basis_set, settings=settings, options=gen_sym_opts).run()
+r_mol  = adfsinglepointjob(m_mol,  basis_set, settings=settings, options=gen_sym_opts).run()
+r_env1 = adfsinglepointjob(m_env1, basis_set, settings=settings, options=gen_sym_opts).run()
+
+
+##########################################################
+# 4. if you need to export some quantity 
+# on a numerical grid, then this is how you do it
+##########################################################
+
+# these settings you need to adapt for the job - storage and grid settings:
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+
+# choose grid for plotting
+# numerical integration grid used in calculation
+ngrid = adfgrid(r_tot)
+# regular grid
+cgrid = cubegrid(r_tot.get_molecule(), spacing=0.5, border=2.0)
+
+# export electron density on these grids
+dens_ngrid = r_tot.get_density(grid=ngrid)
+dens_ngrid.get_xyzvfile(os.path.join(data_dir, 'dens_ngrid.csv'))
+
+dens_cgrid = r_tot.get_density(grid=cgrid)
+dens_cgrid.get_xyzvfile(os.path.join(data_dir, 'dens_cgrid.csv'))
+
+
+##########################################################
+# 5. if you need to run geometry optimization 
+# and frequency calculations, then this is how you do it
+##########################################################
+
+# these settings you need to adapt for the job - data storage:
+data_dir = os.path.join(pyadfenv.outdir, 'data')
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+
+# these settings you need to adapt for the job - especially the convergence criteria!
+geom_settings = adfgeometrysettings(iterations=50, converge={'Gradients': '1e-3'})
+
+# run geometry optimization and save the final geometry
+result_geom = adfgeometryjob(m_tot, basis_set, settings=settings, geometrysettings=geom_settings).run()
+
+m_tot_final = result_geom.get_molecule()
+m_tot_final.write(os.path.join(data_dir, 'supermolecule_optimized.xyz'))
+
+# check vibrational frequencies and save them
+result_freq = adffreqjob(m_tot, basis_set, geometrysettings=geom_settings).run()
+
+freqs = result_freq.get_frequencies()
+modes_c = result_freq.get_normalmodes_c()
+
+numpy.savetxt(os.path.join(data_dir, 'freqs.txt'), freqs)
+numpy.savetxt(os.path.join(data_dir, 'modes.txt'), modes_c)
+
+
+##########################################################
+# 6. if you need to run FDE calculations,
+# then this is how you do it
+##########################################################
+
+
+# these settings you need to adapt for the job - ....
+fde_nadd_kin = 'PW91K'    # choose the potential for the non-additive kinetic part of interaction energy
+max_fnt_cycles = 5        # choose the maximum number of freeze-and-thaw cycles
+save_potentials_densities = False
+
+fde_exc_opts = ['QTENS', 'ALLOW POSHOMO']
+gen_fde_opts = gen_sym_opts + fde_exc_opts
+
+fde_act_opts = {'FULLGRID':'', 'TNAD':fde_nadd_kin, 'ENERGY':''}
+fde_frz_opts = {}
+
+fnt_act_opts = {'FULLGRID':'', 'TNAD':fde_nadd_kin, 'ENERGY':'', 'RELAXCYCLES': max_fnt_cycles }
+fnt_frz_opts = {"RELAX":""}
+
+basis_act = basis_set
+basis_frz = basis_set
+
+
+# A. run "pure" FDE calculations (no freeze-and-thaw cycles)
+#    ... FDE calculations on an "active" subsystem
+frags = [ fragment(None,  [m_mol]),
+          fragment(r_env1, [m_env1], isfrozen=True, fdeoptions=fde_frz_opts) ]
+
+result_fde_mol = adffragmentsjob(frags, basis_set, settings=settings, fde=fde_act_opts,
+                                 options=gen_fde_opts).run()
+
+
+#    ... now exchange subsystems and do FDE calculations on an "environment"
+frags = [ fragment(None,  [m_env1]),
+          fragment(r_mol, [m_mol], isfrozen=True, fdeoptions=fde_frz_opts) ]
+
+result_fde_env1 = adffragmentsjob(frags, basis_set, settings=settings, fde=fde_act_opts,
+                                  options=gen_fde_opts).run()
+
+
+
+# B. run FDE calculations with freeze-and-thaw cycles
+#    ... FDE calculations on an "active" subsystem
+frags = [ fragment(None,   [m_mol]),
+          fragment(r_env1, [m_env1], isfrozen=True, fdeoptions=fnt_frz_opts) ]
+
+result_fnt_mol = adffragmentsjob(frags, basis_set, settings=settings, fde=fnt_act_opts,
+                                 options=gen_fde_opts).run()
+
+#    ... now exchange subsystems and do FDE calculations on an "environment"
+
+frags = [ fragment(None,  [m_env1]),
+          fragment(r_mol, [m_mol], isfrozen=True, fdeoptions=fnt_frz_opts) ]
+
+result_fnt_env1 = adffragmentsjob(frags, basis_set, settings=settings, fde=fnt_act_opts,
+                                  options=gen_fde_opts).run()
+
+

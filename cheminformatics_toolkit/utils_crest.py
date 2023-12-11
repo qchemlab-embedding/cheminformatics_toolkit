@@ -26,6 +26,10 @@ class crest_analysis():
         self.qm_tmpl_inp = self.options['qm_input_template_fullpath']
         self.qm_tmpl_run = self.options['qm_runscript_template_fullpath']
          
+        if self.options['nr_atoms_in_active_sub'] is not None:
+            self.nr_atoms_in_active = int(self.options['nr_atoms_in_active_sub'])
+        else:
+            self.nr_atoms_in_active = 0
 
     def ignore_files(self, dirname, files):
         return [f for f in files if os.path.isfile(os.path.join(dirname, f))]
@@ -49,7 +53,7 @@ class crest_analysis():
 
 
 
-    def parse_structures(self):
+    def parse_structures(self, to_subsystems=False):
         fileout_dir= Path(self.workdir, 'tmpdir').absolute()
         fileout_dir.mkdir(parents=True, exist_ok=True)
         output_xyz_files = []
@@ -62,6 +66,20 @@ class crest_analysis():
                 with open(str(fileout), 'w') as fout:
                     for l in v:
                         fout.write('{}\n'.format(l))
+                if to_subsystems == True:
+                    #warning - error-prone:
+                    sub1f = Path(fileout_dir, mol_name+'_sub1.xyz').absolute()
+                    sub2f = Path(fileout_dir, mol_name+'_sub2.xyz').absolute()
+                    with open(str(sub1f), 'w') as fout:
+                        fout.write('{}\n'.format(self.nr_atoms_in_active))
+                        fout.write('sub1\n')
+                        for l in v[2:self.nr_atoms_in_active-1+3]:
+                            fout.write('{}\n'.format(l))
+                    with open(str(sub2f), 'w') as fout:
+                        fout.write('{}\n'.format(int(v[0])-self.nr_atoms_in_active))
+                        fout.write('sub2\n')
+                        for l in v[2+self.nr_atoms_in_active:]:
+                            fout.write('{}\n'.format(l))
         return output_xyz_files
 
 
@@ -71,7 +89,10 @@ class crest_analysis():
 
     def prep_for_pyadf(self, xyzfiles=None):
         if xyzfiles is None:
-            xyzfiles = self.parse_structures()
+            if self.nr_atoms_in_active == 0:
+                xyzfiles = self.parse_structures(to_subsystems=False)
+            else:
+                xyzfiles = self.parse_structures(to_subsystems=True)
         self.setup_qm_dirstructure(xyzfiles)
         self.cleanup(Path(self.workdir, 'tmpdir').absolute())
 
@@ -95,6 +116,14 @@ class crest_analysis():
                             Path(qm_dir).mkdir(parents=True, exist_ok=True)
                             Path(coor_dir).mkdir(parents=True, exist_ok=True)
                             shutil.copy(mf, coor_dir)
+                            sub1f=str(mf).replace('.xyz', '_sub1.xyz')
+                            sub2f=str(mf).replace('.xyz', '_sub2.xyz')
+                            print('BUBA: ', sub1f)
+                            if Path(sub1f).exists(): 
+                                print('BUBA2: ', sub1f)
+                                shutil.copy(Path(sub1f), coor_dir)
+                            if Path(sub2f).exists(): 
+                                shutil.copy(Path(sub2f), coor_dir)
                             shutil.copy(self.qm_tmpl_inp, qm_dir)
                             shutil.copy(self.qm_tmpl_run, qm_dir)
                             # now, string replacement:

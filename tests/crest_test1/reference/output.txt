@@ -13,6 +13,7 @@ cluster_part : plgrid-now
 hamiltonians : ['spinorbit ZORA']
 dftfuns : ['PBE']
 basis_sets : ['TZ2P']
+nr_atoms_in_active_sub : 6
 runinp_dir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/crest_test1
 outfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/crest_test1/output.txt
 logfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/crest_test1/log

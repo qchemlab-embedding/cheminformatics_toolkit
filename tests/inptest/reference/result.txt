@@ -13,6 +13,7 @@ cluster_part : plgrid-now
 hamiltonians : ['ZORA']
 dftfuns : ['PBE']
 basis_sets : ['TZ2P']
+nr_atoms_in_active_sub : None
 runinp_dir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/inptest
 outfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest/result.txt
 logfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest/log

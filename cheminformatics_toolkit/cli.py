@@ -178,6 +178,16 @@ class input_data:
                                         ''')
 
 
+        optional_args.add_argument('--nr_atoms_in_active_sub',
+                                   dest='nr_atoms_in_active_sub',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
         args = parser.parse_args(self.args_list)
         self.options = vars(args)
 
