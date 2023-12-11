@@ -82,8 +82,11 @@ class crest_analysis():
                     for b in bs:
                         if 'pyadf' in self.options['job_type']:
                             qm_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b).absolute()
+                            coor_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b, 'coordinates').absolute()
                             Path(qm_dir).mkdir(parents=True, exist_ok=True)
+                            Path(coor_dir).mkdir(parents=True, exist_ok=True)
                             shutil.copy(self.qm_tmpl_inp, qm_dir)
                             shutil.copy(self.qm_tmpl_run, qm_dir)
+                            shutil.copy(mf, coor_dir)
 
 
