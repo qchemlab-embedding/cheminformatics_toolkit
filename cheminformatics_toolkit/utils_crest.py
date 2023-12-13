@@ -118,9 +118,7 @@ class crest_analysis():
                             shutil.copy(mf, coor_dir)
                             sub1f=str(mf).replace('.xyz', '_sub1.xyz')
                             sub2f=str(mf).replace('.xyz', '_sub2.xyz')
-                            print('BUBA: ', sub1f)
                             if Path(sub1f).exists(): 
-                                print('BUBA2: ', sub1f)
                                 shutil.copy(Path(sub1f), coor_dir)
                             if Path(sub2f).exists(): 
                                 shutil.copy(Path(sub2f), coor_dir)

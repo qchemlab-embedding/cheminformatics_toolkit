@@ -1,0 +1,16 @@
+--job_type=from_crest_to_pyadf
+--work_pathdir=scratch/crest_test1
+--username=myname
+--inp_xyz_fullpath=coordinates/crest_data/cluster_1/conformers/crest_conformers.xyz
+--out_filename=output.txt
+--nr_atoms_in_active_sub=6
+--molname=cluster_1
+--molcharge=0
+--qm_runscript_template_fullpath=templates/pyadf/run.sh
+--qm_input_template_fullpath=templates/pyadf/generic.pyadf
+--cluster_ntasks=8
+--cluster_timeh=01:00:00
+--cluster_part=plgrid-testing
+--hamiltonians=spinorbit ZORA
+--dftfuns=PBE
+--basis_sets=TZ2P

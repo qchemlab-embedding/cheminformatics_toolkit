@@ -18,6 +18,7 @@ class input_data:
             self.runinp_dir = os.getcwd()
 
         self.jobtypes = global_data.jobtypes
+        self.structural_parameters = global_data.structural_parameters
 
 
     def parse_options(self):
@@ -48,6 +49,17 @@ class input_data:
         optional_args = parser.add_argument_group('optional arguments')
 
 
+        required_args.add_argument('--structural_parameters',
+                                   dest='structural_parameters',
+                                   action='append',
+                                   metavar='writeme',
+                                   choices=self.structural_parameters,
+                                   required=True,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
         optional_args.add_argument('--username',
                                    dest='username',
                                    action='store',
@@ -62,6 +74,16 @@ class input_data:
         optional_args.add_argument('--inp_xyz_fullpath',
                                    dest='inp_xyz_fullpath',
                                    action='append',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+ 
+        optional_args.add_argument('--inp_sdf_dirpath',
+                                   dest='inp_sdf_dirpath',
+                                   action='store',
                                    metavar='writeme',
                                    required=False,
                                    help='''
@@ -203,29 +225,46 @@ class input_data:
 
     def process_options(self):
 
+        if self.options == {}:
+            self.parse_options()
+
         # resolve paths:
 
         runinp_dir = Path(self.runinp_dir).resolve().absolute()   # where the ctk job input is 
-        work_dir   = Path(runinp_dir, Path(self.options['work_pathdir'])).resolve().absolute() # workdir (e.g., scratch); can be relative to runinp_dir
-
-        qm_tmpl_inp = Path(runinp_dir, Path(self.options['qm_input_template_fullpath'])).resolve().absolute()
-        qm_tmpl_run = Path(runinp_dir, Path(self.options['qm_runscript_template_fullpath'])).resolve().absolute()
-
-        outfile = Path(work_dir, Path(self.options['out_filename']).resolve()).absolute()
-        logfile = Path(work_dir, 'log').absolute()
-
-        inpxyzf = [Path(runinp_dir, Path(x)).resolve().absolute() for x in self.options['inp_xyz_fullpath']]
-
         self.options['runinp_dir']   = runinp_dir
+
+        work_dir   = Path(runinp_dir, Path(self.options['work_pathdir'])).resolve().absolute() # workdir (e.g., scratch); can be relative to runinp_dir
         self.options['work_pathdir'] = work_dir
 
+        if self.options['qm_input_template_fullpath'] is not None:
+            qm_tmpl_inp = Path(runinp_dir, Path(self.options['qm_input_template_fullpath'])).resolve().absolute()
+            self.options['qm_input_template_fullpath'] = qm_tmpl_inp
+        if self.options['qm_runscript_template_fullpath'] is not None:
+            qm_tmpl_run = Path(runinp_dir, Path(self.options['qm_runscript_template_fullpath'])).resolve().absolute()
+            self.options['qm_runscript_template_fullpath'] = qm_tmpl_run
+
+        if self.options['out_filename'] is not None:
+            outfile = Path(work_dir, Path(self.options['out_filename']).resolve()).absolute()
+        else:
+            outfile = Path(work_dir, 'output.txt').absolute()
         self.options['outfile'] = outfile
+
+        logfile = Path(work_dir, 'log').absolute()
         self.options['logfile'] = logfile
 
-        self.options['inpxyzf'] = inpxyzf
+        if  self.options['inp_xyz_fullpath'] is not None:
+            inpxyzf = [Path(runinp_dir, Path(x)).resolve().absolute() for x in self.options['inp_xyz_fullpath']]
+            self.options['inpxyzf'] = inpxyzf
+        else:
+            self.options['inpxyzf'] = None
 
-        self.options['qm_input_template_fullpath'] = qm_tmpl_inp
-        self.options['qm_runscript_template_fullpath'] = qm_tmpl_run
+        if  self.options['inp_sdf_dirpath'] is not None:
+            inpsdfdir = Path(runinp_dir, Path(self.options['inp_sdf_dirpath'])).resolve().absolute()
+            self.options['inpsdfdir'] = inpsdfdir
+        else:
+            self.options['inpsdfdir'] = None
+
+
 
 
 def read_input(finp=None, verbose=False):

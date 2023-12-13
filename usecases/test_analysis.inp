@@ -1,0 +1,6 @@
+--job_type=structural_analysis
+--work_pathdir=scratch
+--inp_sdf_dirpath=coordinates
+--out_filename=structural_analysis.csv
+--structural_parameters=distances
+--structural_parameters=angles
