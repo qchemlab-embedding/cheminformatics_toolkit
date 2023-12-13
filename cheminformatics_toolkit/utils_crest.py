@@ -110,7 +110,7 @@ class crest_analysis():
                     for b in bs:
                         b = b.replace(" ", "")
                         if 'pyadf' in self.options['job_type']:
-                            subdirname=self.options['username']+'-space/qm_calcs/pyadf/' + 'molname/' + h + '/' + d + '/' + b
+                            subdirname=self.options['username']+'-space/qm_calcs/pyadf/' + molname + '/' + h + '/' + d + '/' + b
                             qm_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b).absolute()
                             coor_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b, 'coordinates').absolute()
                             Path(qm_dir).mkdir(parents=True, exist_ok=True)
@@ -120,8 +120,14 @@ class crest_analysis():
                             sub2f=str(mf).replace('.xyz', '_sub2.xyz')
                             if Path(sub1f).exists(): 
                                 shutil.copy(Path(sub1f), coor_dir)
+                                molfilename=Path(sub1f).name
+                            else:
+                                molfilename=mf.name
                             if Path(sub2f).exists(): 
                                 shutil.copy(Path(sub2f), coor_dir)
+                                envfilename=Path(sub2f).name
+                            else:
+                                envfilename=None
                             shutil.copy(self.qm_tmpl_inp, qm_dir)
                             shutil.copy(self.qm_tmpl_run, qm_dir)
                             # now, string replacement:
@@ -133,7 +139,7 @@ class crest_analysis():
                                     self.modify_lines(g, lines, \
                                                       data_dir_in_scratch=subdirname, data_dir_in_storage=subdirname, \
                                                       project_name=self.qm_tmpl_inp.stem, \
-                                                      molfilename=mf.name, envfilename=mf.name, molcharge=0, \
+                                                      molfilename=molfilename, envfilename=envfilename, molcharge=int(self.options["molcharge"]), \
                                                       cluster_ntasks=self.options['cluster_ntasks'], \
                                                       cluster_timeh=self.options['cluster_timeh'], \
                                                       cluster_part=self.options['cluster_part'], \
@@ -144,7 +150,7 @@ class crest_analysis():
                                     self.modify_lines(g, lines, \
                                                       data_dir_in_scratch=subdirname, data_dir_in_storage=subdirname, \
                                                       project_name=self.qm_tmpl_inp.stem, \
-                                                      molfilename=mf.name, envfilename=mf.name, molcharge=0, \
+                                                      molfilename=molfilename, envfilename=envfilename, molcharge=int(self.options["molcharge"]), \
                                                       cluster_ntasks=self.options['cluster_ntasks'], \
                                                       cluster_timeh=self.options['cluster_timeh'], \
                                                       cluster_part=self.options['cluster_part'], \
@@ -155,7 +161,7 @@ class crest_analysis():
 
     def modify_lines(self, g, lines, \
                      data_dir_in_scratch, data_dir_in_storage, project_name, \
-                     molfilename, envfilename, molcharge, \
+                     molfilename, envfilename=None, molcharge=None, \
                      cluster_ntasks=None, cluster_timeh=None, cluster_part=None, \
                      basis=None, hamiltonian=None, dftfun=None):
     
@@ -170,11 +176,21 @@ class crest_analysis():
         patterns["project_name"] = project_name
     
         patterns["molfilename"] = molfilename
-        patterns["envfilename"] = envfilename
-        patterns["molcharge"] = molcharge
+        if envfilename is not None:
+            patterns["envfilename"] = envfilename
+        else:
+            patterns["envfilename"] = 'remove'
+        if molcharge is not None:
+            patterns["molcharge"] = molcharge
+        else:
+            patterns["molcharge"] = 'remove'
     
         patterns["choice_of_basis"] = basis
         patterns["choice_of_dftfun"] = dftfun
+
+        # TODO
+        #patterns["myname-space"] = molfilename.stem
+
 
         if 'ZORA' in hamiltonian:
             if 'spinorbit' in hamiltonian:

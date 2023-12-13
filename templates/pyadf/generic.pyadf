@@ -152,7 +152,6 @@ dens_cgrid.get_xyzvfile(os.path.join(data_dir, 'dens_cgrid.csv'))
 ##########################################################
 
 # these settings you need to adapt for the job - data storage:
-data_dir = os.path.join(pyadfenv.outdir, 'data')
 if not os.path.exists(data_dir):
     os.makedirs(data_dir)
 
