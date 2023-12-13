@@ -1,7 +1,9 @@
 job_type : inptest
 work_pathdir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest
+structural_parameters : None
 username : myname
 inp_xyz_fullpath : ['../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz']
+inp_sdf_dirpath : None
 out_filename : result.txt
 molname : cluster_1
 molcharge : 0
@@ -18,3 +20,4 @@ runinp_dir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/
 outfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest/result.txt
 logfile : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest/log
 inpxyzf : [PosixPath('/net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/testdata/crest_data/cluster_1/conformers/crest_conformers.xyz')]
+inpsdfdir : None

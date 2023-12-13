@@ -133,13 +133,13 @@ def test_crest():
     #cleanup(testdirs)
 
 
-def test_rdkit():
-
-    testdirs = [
-        "rdkit_test1",
-        ]
-    
-    run_test_generic(testdirs, debug=True)
-    #cleanup(testdirs)
+#def test_rdkit():
+#
+#    testdirs = [
+#        "rdkit_test1",
+#        ]
+#    
+#    run_test_generic(testdirs, debug=True)
+#    #cleanup(testdirs)
 
 

@@ -49,12 +49,12 @@ class input_data:
         optional_args = parser.add_argument_group('optional arguments')
 
 
-        required_args.add_argument('--structural_parameters',
+        optional_args.add_argument('--structural_parameters',
                                    dest='structural_parameters',
                                    action='append',
                                    metavar='writeme',
                                    choices=self.structural_parameters,
-                                   required=True,
+                                   required=False,
                                    help='''
                                         help msg
                                         ''')
