@@ -3,8 +3,8 @@ from pathlib import Path
 import glob
 import numpy as np
 
-sys.path.append('../')
-
+# if testing ctk at the version in directory up, uncomment the line below:
+#sys.path.append('../')
 import cheminformatics_toolkit as ctk
 
 class gold_clusters():
@@ -81,9 +81,9 @@ class gold_clusters():
         return O_env, H_env, Au_mol, S_mol, C_mol, H_mol
 
 
-# example 1
-#verbose=True
+verbose=True
 
+# example 1
 #test_file='test_crest_pyadf.inp'
 #args = ctk.cli.read_input(finp=test_file, verbose=verbose)
 #setup = ctk.cli.input_data(args)
