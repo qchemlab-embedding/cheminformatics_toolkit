@@ -46,16 +46,17 @@ class crest_analysis():
         data = {}
         with open(finp, 'r') as f:
             lines = f.readlines()
+            nr_at = int(lines[0])
             nr_struct = 0
             new_struct_line = 0
             for i, line in enumerate(lines):
                 if new_struct_line < len(lines):
-                    nr_at = int(lines[new_struct_line])
-                    energy = float(lines[new_struct_line+1])
+                    # energy is in kcal/mol according to https://doi.org/10.1063/1.5128378
+                    energy = lines[new_struct_line+1].strip()
                     coords = [x.strip() for x in lines[new_struct_line+2:new_struct_line+2+nr_at]]
                     nr_struct += 1
-                    new_struct_line = new_struct_line + (2 + nr_at)*nr_struct
-                    data[nr_struct] = [str(nr_at)] + [str(energy)] + [x for x in coords]
+                    data[nr_struct] = [str(nr_at)] + [energy] + [x for x in coords]
+                    new_struct_line = new_struct_line + (2 + nr_at)
         return data
 
 
