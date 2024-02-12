@@ -135,6 +135,10 @@ class crest_analysis():
                                 envfilename=Path(sub2f).name
                             else:
                                 envfilename=None
+                            if self.options["molcharge"] is not None:
+                                totalmolcharge = self.options["molcharge"]
+                            else:
+                                totalmolcharge = None
                             shutil.copy(self.qm_tmpl_inp, qm_dir)
                             shutil.copy(self.qm_tmpl_run, qm_dir)
                             # now, string replacement:
@@ -146,7 +150,7 @@ class crest_analysis():
                                     self.modify_lines(g, lines, \
                                                       data_dir_in_scratch=subdirname, data_dir_in_storage=subdirname, \
                                                       project_name=self.qm_tmpl_inp.stem, \
-                                                      molfilename=molfilename, envfilename=envfilename, molcharge=int(self.options["molcharge"]), \
+                                                      molfilename=molfilename, envfilename=envfilename, molcharge=totalmolcharge, \
                                                       cluster_ntasks=self.options['cluster_ntasks'], \
                                                       cluster_timeh=self.options['cluster_timeh'], \
                                                       cluster_part=self.options['cluster_part'], \
@@ -157,7 +161,7 @@ class crest_analysis():
                                     self.modify_lines(g, lines, \
                                                       data_dir_in_scratch=subdirname, data_dir_in_storage=subdirname, \
                                                       project_name=self.qm_tmpl_inp.stem, \
-                                                      molfilename=molfilename, envfilename=envfilename, molcharge=int(self.options["molcharge"]), \
+                                                      molfilename=molfilename, envfilename=envfilename, molcharge=totalmolcharge, \
                                                       cluster_ntasks=self.options['cluster_ntasks'], \
                                                       cluster_timeh=self.options['cluster_timeh'], \
                                                       cluster_part=self.options['cluster_part'], \
@@ -188,7 +192,7 @@ class crest_analysis():
         else:
             patterns["envfilename"] = 'remove'
         if molcharge is not None:
-            patterns["molcharge"] = molcharge
+            patterns["molcharge"] = int(molcharge)
         else:
             patterns["molcharge"] = 'remove'
     
