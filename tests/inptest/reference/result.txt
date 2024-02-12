@@ -2,6 +2,7 @@ job_type : inptest
 work_pathdir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/inptest
 structural_parameters : None
 username : myname
+work_pathsubdir : None
 inp_xyz_fullpath : ['../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz']
 inp_sdf_dirpath : None
 out_filename : result.txt

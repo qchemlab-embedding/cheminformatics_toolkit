@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cheminformatics_toolkit"
-version = "0.1.3"
+version = "0.1.5"
 description = ""
 authors = ["gosia olejniczak <gosia.olejniczak@gmail.com>"]
 readme = "README.md"

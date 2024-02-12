@@ -2,6 +2,7 @@ job_type : from_crest_to_pyadf
 work_pathdir : /net/pr2/projects/plgrid/plggqcembed/devel/cheminformatics_toolkit/tests/scratch/crest_test1
 structural_parameters : None
 username : myname
+work_pathsubdir : qm_calcs/pyadf/generic
 inp_xyz_fullpath : ['../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz']
 inp_sdf_dirpath : None
 out_filename : output.txt

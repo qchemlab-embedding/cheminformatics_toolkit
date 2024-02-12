@@ -70,6 +70,16 @@ class input_data:
                                         ''')
 
 
+        optional_args.add_argument('--work_pathsubdir',
+                                   dest='work_pathsubdir',
+                                   action='store',
+                                   metavar='writeme',
+                                   required=False,
+                                   help='''
+                                        help msg
+                                        ''')
+
+
  
         optional_args.add_argument('--inp_xyz_fullpath',
                                    dest='inp_xyz_fullpath',

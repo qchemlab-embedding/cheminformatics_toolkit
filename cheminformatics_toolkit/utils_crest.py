@@ -15,6 +15,13 @@ class crest_analysis():
 
         self.rundir      = self.options['runinp_dir']
         self.workdir     = self.options['work_pathdir']
+        if self.options['work_pathsubdir'] is None:
+            if 'pyadf' in self.options['job_type']:
+                self.worksubdir     = 'qm_calcs/pyadf'
+            else:
+                self.worksubdir     = 'qm_calcs'
+        else:
+            self.worksubdir     = self.options['work_pathsubdir']
 
         self.out_filepath  = self.options['outfile']
         self.log_filepath  = self.options['logfile']
@@ -110,9 +117,9 @@ class crest_analysis():
                     for b in bs:
                         b = b.replace(" ", "")
                         if 'pyadf' in self.options['job_type']:
-                            subdirname=self.options['username']+'-space/qm_calcs/pyadf/' + molname + '/' + h + '/' + d + '/' + b
-                            qm_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b).absolute()
-                            coor_dir = Path(self.workdir, 'qm_calcs', 'pyadf', molname, h, d, b, 'coordinates').absolute()
+                            subdirname=self.options['username']+'-storage/'+self.worksubdir+'/' + molname + '/' + h + '/' + d + '/' + b
+                            qm_dir = Path(self.workdir, self.worksubdir, molname, h, d, b).absolute()
+                            coor_dir = Path(self.workdir, self.worksubdir, molname, h, d, b, 'coordinates').absolute()
                             Path(qm_dir).mkdir(parents=True, exist_ok=True)
                             Path(coor_dir).mkdir(parents=True, exist_ok=True)
                             shutil.copy(mf, coor_dir)

@@ -1,5 +1,6 @@
 --job_type=from_crest_to_pyadf
 --work_pathdir=../scratch/crest_test1
+--work_pathsubdir=qm_calcs/pyadf/generic
 --username=myname
 --inp_xyz_fullpath=../testdata/crest_data/cluster_1/conformers/crest_conformers.xyz
 --nr_atoms_in_active_sub=6
